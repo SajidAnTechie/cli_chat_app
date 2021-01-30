@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cli_chat_app/cmd"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,24 +11,23 @@ import (
 
 func main() {
 
+	cmd.Execute()
+
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
+
+		fmt.Println("connected successfull")
+
 		s.SetContext("")
-		fmt.Println("connected:", s.ID())
+		s.Join("chat")
+		s.Emit("message", "Welcom to the chat")
+
+		server.BroadcastToRoom("", "chat", "message", "user with id"+s.ID()+"join the chat")
+
+		fmt.Println("connected:")
+
 		return nil
-
-		// fmt.Println("connected successfull")
-
-		// s.SetContext("")
-		// s.Join("chat")
-		// s.Emit("message", "Welcom to the chat")
-
-		// server.BroadcastToRoom("", "chat", "message", "user with id"+s.ID()+"join the chat")
-
-		// fmt.Println("connected:")
-
-		// return nil
 	})
 
 	server.OnEvent("/", "chat message", func(s socketio.Conn, msg string) {
