@@ -8,6 +8,12 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 )
 
+type UserDetails struct {
+	id         string
+	name       string
+	joinedRoom string
+}
+
 func main() {
 
 	server := socketio.NewServer(nil)
@@ -22,13 +28,22 @@ func main() {
 
 		return nil
 	})
-	server.BroadcastToRoom("", "chat", "message", "user join the chat")
+
+	server.OnEvent("/", "joinRoom", func(s socketio.Conn, msg UserDetails) {
+
+		currentUser := UserDetails{s.ID(), msg.name, msg.joinedRoom}
+
+		s.Join(currentUser.joinedRoom)
+
+		server.BroadcastToRoom("", msg.joinedRoom, "message", msg.name+"join the chat")
+
+	})
 
 	server.OnEvent("/", "chatMessage", func(s socketio.Conn, msg string) {
 
-		//s.BroadcastToRoom("", "chat", "message", msg)
+		server.BroadcastToRoom("", "chat", "message", msg)
 
-		s.Emit("message", msg)
+		// s.Emit("message", msg)
 
 	})
 
