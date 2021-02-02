@@ -1,18 +1,3 @@
-/*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -25,11 +10,6 @@ import (
 	socketio_client "github.com/zhouhui8915/go-socket.io-client"
 )
 
-type UserDetails struct {
-	name       string
-	joinedRoom string
-}
-
 // connectCmd represents the connect command
 var (
 	userName   string
@@ -40,8 +20,8 @@ var (
 
 		Run: func(cmd *cobra.Command, args []string) {
 
-			fmt.Println("userName" + userName)
-			fmt.Println("roomName" + roomName)
+			fmt.Println("userName: " + userName)
+			fmt.Println("roomName: " + roomName)
 
 			opts := &socketio_client.Options{
 				Transport: "websocket",
@@ -54,16 +34,11 @@ var (
 				log.Printf("NewClient error:%v\n", err)
 				return
 			}
+			client.On("connection", func() {
 
-			client.On("error", func() {
-				log.Printf("on error\n")
-			})
-			client.On("connection", func(s socketio_client.Client) {
+				client.Emit("joinRoom", "chat")
 
-				userDetails := UserDetails{userName, roomName}
-
-				s.Emit("joinRoom", userDetails)
-				log.Printf("on connect\n")
+				fmt.Println("===Start Charting====")
 			})
 
 			client.On("message", func(msg string) {
@@ -71,6 +46,10 @@ var (
 			})
 			client.On("disconnection", func() {
 				log.Printf("on disconnect\n")
+			})
+
+			client.On("error", func() {
+				log.Printf("on error\n")
 			})
 
 			reader := bufio.NewReader(os.Stdin)
