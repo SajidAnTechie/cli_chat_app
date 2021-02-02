@@ -42,8 +42,8 @@ func main() {
 		}
 
 		for idx := range dat {
-			if dat[idx]["id"] == "2" {
-				fmt.Println("bingo")
+			if dat[idx]["id"] == userID {
+				return dat[idx]["roomName"]
 			}
 		}
 	}
