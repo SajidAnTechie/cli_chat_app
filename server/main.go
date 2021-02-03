@@ -9,17 +9,19 @@ import (
 )
 
 type user struct {
-	name     string
-	roomName string
+	name string
+	room string
 }
 
 func main() {
 
 	mapMake := make(map[string]*user)
 
-	userJoin := func(userID string, joinedRoom string, userName string) {
+	userJoin := func(userID string, joinedRoom string, userName string) *user {
 
-		mapMake[userID] = &user{name: userName, roomName: joinedRoom}
+		mapMake[userID] = &user{name: userName, room: joinedRoom}
+
+		return mapMake[userID]
 
 	}
 	getJoinedUserDetails := func(userID string) *user {
@@ -39,11 +41,11 @@ func main() {
 
 	server.OnEvent("/", "joinRoom", func(s socketio.Conn, roomName string, userName string) {
 
-		userJoin(s.ID(), roomName, userName)
+		user := userJoin(s.ID(), roomName, userName)
 
-		s.Join(roomName)
+		s.Join(user.room)
 
-		server.BroadcastToRoom("/", roomName, "message", userName+" join the chat")
+		server.BroadcastToRoom("/", user.room, "message", user.name+" join the chat")
 
 	})
 
@@ -51,7 +53,7 @@ func main() {
 
 		getJoinedUserDetails := getJoinedUserDetails(s.ID())
 
-		server.BroadcastToRoom("/", getJoinedUserDetails.roomName, "message", getJoinedUserDetails.name+":  "+msg)
+		server.BroadcastToRoom("/", getJoinedUserDetails.room, "message", getJoinedUserDetails.name+":  "+msg)
 
 	})
 
