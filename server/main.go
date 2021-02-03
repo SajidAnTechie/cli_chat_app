@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,42 +9,21 @@ import (
 )
 
 type user struct {
-	id       string
+	name     string
 	roomName string
 }
 
 func main() {
 
-	var users []user
+	mapMake := make(map[string]*user)
 
-	userJoin := func(userID string, joinedRoom string) {
+	userJoin := func(userID string, joinedRoom string, userName string) {
 
-		results := []user{user{
-			id:       userID,
-			roomName: joinedRoom,
-		}}
-
-		for _, details := range results {
-			users = append(users, user{
-				id:       details.id,
-				roomName: details.roomName,
-			})
-		}
+		mapMake[userID] = &user{name: userName, roomName: joinedRoom}
 
 	}
-	getUserJoinedRoom := func(userID string) string {
-
-		var dat []map[string]string
-
-		if err := json.Unmarshal(users, &dat); err != nil {
-			panic(err)
-		}
-
-		for idx := range dat {
-			if dat[idx]["id"] == userID {
-				return dat[idx]["roomName"]
-			}
-		}
+	getJoinedUserDetails := func(userID string) *user {
+		return mapMake[userID]
 	}
 
 	server := socketio.NewServer(nil)
@@ -59,22 +37,21 @@ func main() {
 		return nil
 	})
 
-	server.OnEvent("/", "joinRoom", func(s socketio.Conn, roomName string) {
+	server.OnEvent("/", "joinRoom", func(s socketio.Conn, roomName string, userName string) {
 
-		// s.Join(roomName)
-		userJoin(s.ID(), roomName)
+		userJoin(s.ID(), roomName, userName)
 
-		server.JoinRoom("/", roomName, s)
+		s.Join(roomName)
 
-		server.BroadcastToRoom("/", roomName, "message", "User with id "+s.ID()+" join the chat")
+		server.BroadcastToRoom("/", roomName, "message", userName+" join the chat")
 
 	})
 
 	server.OnEvent("/", "chatMessage", func(s socketio.Conn, msg string) {
 
-		getJoinedRoom := getUserJoinedRoom(s.ID())
+		getJoinedUserDetails := getJoinedUserDetails(s.ID())
 
-		server.BroadcastToRoom("/", getJoinedRoom, "message", msg)
+		server.BroadcastToRoom("/", getJoinedUserDetails.roomName, "message", getJoinedUserDetails.name+":  "+msg)
 
 	})
 
@@ -83,6 +60,8 @@ func main() {
 	})
 
 	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
+
+		s.Emit("leaveRoom", mapMake[s.ID()].name)
 
 		fmt.Println("User with id " + s.ID() + " left the chat")
 		fmt.Println("closed", reason)

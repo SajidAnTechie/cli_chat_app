@@ -36,13 +36,16 @@ var (
 			}
 			client.On("connection", func() {
 
-				client.Emit("joinRoom", "chat")
+				client.Emit("joinRoom", roomName, userName)
 
 				fmt.Println("===Start Charting====")
 			})
 
 			client.On("message", func(msg string) {
-				log.Printf("message:%v\n", msg)
+				log.Printf(msg)
+			})
+			client.On("leaveRoom", func(userName string) {
+				log.Printf(userName + " left the chat")
 			})
 			client.On("disconnection", func() {
 				log.Printf("on disconnect\n")
