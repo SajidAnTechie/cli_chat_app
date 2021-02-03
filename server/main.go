@@ -28,6 +28,10 @@ func main() {
 		return mapMake[userID]
 	}
 
+	userLeave := func(userID string) {
+		delete(mapMake, userID)
+	}
+
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
@@ -64,6 +68,8 @@ func main() {
 	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
 
 		s.Emit("leaveRoom", mapMake[s.ID()].name)
+
+		userLeave(s.ID())
 
 		fmt.Println("User with id " + s.ID() + " left the chat")
 		fmt.Println("closed", reason)
