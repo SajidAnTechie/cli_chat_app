@@ -59,6 +59,7 @@ var (
 			for {
 				data, _, _ := reader.ReadLine()
 				command := string(data)
+				client.Emit("joinRoom", roomName, userName)
 				client.Emit("chatMessage", command)
 			}
 		},
