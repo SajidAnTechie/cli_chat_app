@@ -13,5 +13,5 @@ go run main.go
 ```
 cd client
 
-go run main.go connect --name yourname --room yourRoom name
+go run main.go connect --name yourName --room yourRoomName
 ```
