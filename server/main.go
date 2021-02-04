@@ -25,7 +25,7 @@ func main() {
 
 	}
 	getJoinedUserDetails := func(userID string) *user {
-		fmt.Println(userID)
+
 		return mapMake[userID]
 	}
 
@@ -70,7 +70,7 @@ func main() {
 
 		s.Emit("leaveRoom", mapMake[s.ID()].name)
 
-		fmt.Println("User with id " + mapMake[s.ID()].name + " left the chat")
+		fmt.Println(mapMake[s.ID()].name + " left the chat")
 
 		userLeave(s.ID())
 

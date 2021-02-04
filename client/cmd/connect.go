@@ -34,12 +34,6 @@ var (
 				log.Printf("NewClient error:%v\n", err)
 				return
 			}
-			client.On("connection", func() {
-
-				client.Emit("joinRoom", roomName, userName)
-
-				fmt.Println("===Start Charting====")
-			})
 
 			client.On("message", func(msg string) {
 				log.Printf(msg)
@@ -47,19 +41,27 @@ var (
 			client.On("leaveRoom", func(userName string) {
 				log.Printf(userName + " left the chat")
 			})
+			client.On("connection", func() {
+
+				client.Emit("joinRoom", roomName, userName)
+
+				fmt.Println("===Start Charting====")
+			})
 			client.On("disconnection", func() {
 				log.Printf("on disconnect\n")
 			})
-
 			client.On("error", func() {
 				log.Printf("on error\n")
 			})
+
+			client.Emit("joinRoom", roomName, userName)
+			fmt.Println("===Start Charting====")
 
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				data, _, _ := reader.ReadLine()
 				command := string(data)
-				client.Emit("joinRoom", roomName, userName)
+
 				client.Emit("chatMessage", command)
 			}
 		},
